@@ -29,7 +29,7 @@ end collector int;
 
 // ... and this is 100 times faster than the collector, 300 times faster than the meta
 //
-define function scan-int(str :: <byte-string>, #key start: start :: <integer>, end: stop :: <integer>)
+define function scan-int (str :: <byte-string>, #key start: start :: <integer>, end: stop :: <integer>)
  => (pos :: false-or(<integer>), val :: <integer>);
   let pos = start;
   let sign = 1;
@@ -63,7 +63,7 @@ define collector number(n) => (as(<string>, str).scan-double-float)
 end collector number;
 
 /*
-// Maybe try ressurecting this from time to time if efficiency improvements
+// Maybe try resurrecting this from time to time if efficiency improvements
 // are made to meta code generation.  Meantime, a handwritten version is below
 //
 
@@ -81,10 +81,10 @@ end meta s;
 // This is kinda long and complex, but it's several orders of magnitude faster
 // than what used to be here
 //
-define function scan-double-float(str :: <byte-string>,
-                                  #key start :: <integer> = 0,
-                                       end: finish :: <integer> = str.size,
-                                       base :: <integer> = 10)
+define function scan-double-float (str :: <byte-string>,
+                                   #key start :: <integer> = 0,
+                                        end: finish :: <integer> = str.size,
+                                        base :: <integer> = 10)
  => (pos :: false-or(<integer>), val :: <double-float>);
   let pos = start;
   let sign = 1.0d0;
@@ -94,7 +94,7 @@ define function scan-double-float(str :: <byte-string>,
   let exponent-sign = 1;
   let exponent = 0;
   let float-base = as(<double-float>, base);
-  
+
   // Parse the optional sign.
   if (pos < finish)
     let char = str[pos];
@@ -165,7 +165,7 @@ define function scan-double-float(str :: <byte-string>,
         end while;
       end if;
     end block; // compute-value
-    
+
     // assemble the number from the components
     let mant = sign * mantissa;
     let exp10 = exponent-sign * exponent - scale;
@@ -178,7 +178,7 @@ define function scan-double-float(str :: <byte-string>,
     let n = if (exp10 < 0) -exp10 else exp10 end;
     let y = 1.0d0;
     let z = float-base;
-    for()
+    for ()
       let odd = logand(n, 1);
       n := ash(n, -1);
       if (odd ~== 0)
@@ -197,7 +197,7 @@ define function scan-double-float(str :: <byte-string>,
 end function scan-double-float;
 
 
-define function scan-single-float(str :: <byte-string>, #key start: start :: <integer>, end: finish :: <integer>)
+define function scan-single-float (str :: <byte-string>, #key start: start :: <integer>, end: finish :: <integer>)
  => (pos :: false-or(<integer>), val :: <single-float>);
   // no harm in reading as double-float and may be more accurate
   let (ok, val) = scan-double-float(str, start: start, end: finish);

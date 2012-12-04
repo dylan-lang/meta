@@ -1,16 +1,15 @@
 library: example
 module: example
 
-define function digit?(x :: <character>) => (b :: <boolean>)
+define function digit? (x :: <character>) => (b :: <boolean>)
   member?(x, "0123456789");
 end function digit?;
 
 define constant $zero = as(<integer>, '0');
 
-define function digit-to-integer(x :: <character>) => (d :: <integer>)
+define function digit-to-integer (x :: <character>) => (d :: <integer>)
   as(<integer>, x) - $zero;
 end function digit-to-integer;
-  
 
 define function parse-integer (source :: <stream>);
   with-meta-syntax parse-stream (source)
@@ -28,8 +27,8 @@ define function parse-finger-query (query :: <string>)
       variables (whois, at, c);
       [loop(' '), {[{"/W", "/w"}, yes!(whois)], []},        // Whois switch?
        loop(' '), loop({[{'\n', '\r'}, finish()],           // Newline? Quit.
-			{['@', yes!(at), do(collect('@'))], // @? Indirect.
-			 [accept(c), do(collect(c))]}})];   // collect char
+                        {['@', yes!(at), do(collect('@'))], // @? Indirect.
+                         [accept(c), do(collect(c))]}})];   // collect char
       values(whois, user(), at);
     end with-meta-syntax;
   end with-collector;
@@ -43,7 +42,7 @@ define function test-peeking (query :: <string>)
   end with-meta-syntax;
 end function test-peeking;
 
-define method main(appname, #rest arguments)
+define method main (appname, #rest arguments)
   format-out("Enter fixnum: "); force-output(*standard-output*);
   let number = parse-integer(*standard-input*);
   format-out("Result: %d\n", number);
@@ -53,7 +52,7 @@ define method main(appname, #rest arguments)
   format-out("Enter finger query: "); force-output(*standard-output*);
   let (whois, user, at) = parse-finger-query(read-line(*standard-input*));
   format-out("Results: Whois Switch: %=, Indirect: %=, User: %=\n",
-	     whois, at, user);
+             whois, at, user);
 
   format-out("Enter [a-z]*: "); force-output(*standard-output*);
   let i = test-peeking(read-line(*standard-input*));

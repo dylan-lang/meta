@@ -6,7 +6,7 @@ copyright: (c) 2001, Cotillion Group, Inc.
 define variable *debug-meta-functions?* :: <boolean> = #f;
 
 define macro meta-definer
-{ define meta ?:name ( ?vars:* ) => (?results:*) ?meta:* end } 
+{ define meta ?:name ( ?vars:* ) => (?results:*) ?meta:* end }
  => { scan-helper(?name, (?vars), (?results), (?meta)) }
 { define meta ?:name (?vars:*) ?meta:* end }
  => { scan-helper(?name, (?vars), (#t), (?meta)) }
@@ -14,14 +14,14 @@ end macro meta-definer;
 
 define macro scan-helper
 { scan-helper(?:name, (?vars:*), (?results:*), (?meta:*)) }
- => { scanner-builder(?name, ( meta-builder(?=string, ?=start, 
-                                         (?vars), 
+ => { scanner-builder(?name, ( meta-builder(?=string, ?=start,
+                                         (?vars),
                                          (?results), (?meta)))) }
 end macro scan-helper;
 
-define function report-scanner-success(name :: <byte-string>, string, start, success)
+define function report-scanner-success (name :: <byte-string>, string, start, success)
   format-out("In meta fn %s, parse ", name);
-  if(success)
+  if (success)
     format-out("succeeded\n");
   else
     // failed.  Find line and character numbers
@@ -34,7 +34,7 @@ define function report-scanner-success(name :: <byte-string>, string, start, suc
       end;
     end;
     format-out("failed around line %d, char %d: \"%s\"\n", line-num, start - line-start + 1,
-               choose(method(x) 
+               choose(method (x)
                           let y = as(<integer>, x);
                           y > 31 & y < 128
                       end, copy-sequence(string, start: start,
@@ -49,7 +49,7 @@ define macro scanner-builder
           (?=string :: <byte-string>,
            #key ?=start :: <integer> = 0, end: stop :: <integer> = ?=string.size)
         let (result0, #rest results) = ?built-meta;
-        if(*debug-meta-functions?*)
+        if (*debug-meta-functions?*)
             report-scanner-success(?"name", ?=string, ?=start, result0);
         end;
         apply(values, result0, results);
@@ -67,12 +67,12 @@ end macro meta-builder;
 
 define macro collector-definer
 { define collector ?:name (?vars:*) => (?results:*) ?meta:* end }
- => { scanner-builder(?name, 
+ => { scanner-builder(?name,
        (with-collector into-vector ?=str, collect: ?=collect;
           meta-builder(?=string, ?=start, (?vars), (?results), (?meta));
         end with-collector)) }
 { define collector ?:name (?vars:*) ?meta:* end }
- => { scanner-builder(?name, 
+ => { scanner-builder(?name,
        (with-collector into-vector ?=str, collect: ?=collect;
           meta-builder(?=string, ?=start, (?vars), (as(<string>, ?=str)), (?meta));
         end with-collector)) }
