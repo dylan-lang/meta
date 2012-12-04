@@ -1,7 +1,7 @@
 module: meta
 synopsis: exports other modules and provides common scan functions
 author:  Douglas M. Auclair
-copyright: (c) 2001, LGPL
+copyright: See LICENSE in this distribution for details.
 
 // a word is delimited by non-graphic characters: spaces, <>, {}, [],
 // punctuation, or the single- or double- quotation-mark.

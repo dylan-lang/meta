@@ -1,6 +1,6 @@
 module: dylan-user
 author: David Lichteblau (david.lichteblau@snafu.de)
-copyright: Copyright (c) 1999 David Lichteblau
+copyright: See LICENSE in this distribution for details.
 
 define library meta
   use common-dylan;

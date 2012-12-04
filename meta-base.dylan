@@ -1,9 +1,6 @@
 module: meta-base
 author: David Lichteblau (david.lichteblau@snafu.de)
-copyright: Copyright (c) 1999 David Lichteblau.  All Rights Reserved.
-
-// Please read the file README and the documentation.
-// For licensing information see LICENSE.
+copyright: See LICENSE in this distribution for details.
 
 define macro with-meta-syntax
     { with-meta-syntax ?source-type:name (?source:expression, ?args:*)

@@ -1,7 +1,7 @@
 module: meta-types
 synopsis: types useful when collecting words, numbers, etc
 author:  Douglas M. Auclair
-copyright: (c) 2001, LGPL
+copyright: See LICENSE in this distribution for details.
 
 // and constants as classes
 define constant $letter        :: <byte-string> =

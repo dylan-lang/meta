@@ -1,6 +1,6 @@
 module: meta-base
 author: David Lichteblau (david.lichteblau@snafu.de)
-copyright: Copyright (c) 1999 David Lichteblau.  All Rights Reserved.
+copyright: See LICENSE in this distribution for details.
 
 // Please read the file README and the documentation.
 // For licensing information see LICENSE.

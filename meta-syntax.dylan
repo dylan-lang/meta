@@ -1,7 +1,7 @@
 module: meta-syntax
 synopsis: allows adding syntax constructs (belongs in meta lib)
 author: Douglas M. Auclair
-copyright: (c) 2001, Cotillion Group, Inc.
+copyright: See LICENSE in this distribution for details.
 
 define variable *debug-meta-functions?* :: <boolean> = #f;
 
