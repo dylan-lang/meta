@@ -65,28 +65,5 @@ initial cvs version
 Documentation
 =============
 
-	See Meta.html and With-collector.html.
+See Meta.html and With-collector.html.
 
-
-Functional Developer support
-============================
-
-Thanks to Chris&Doug, this is supposed to work now.  Else complain to
-<gd-hackers@gwydiondylan.org>, please.
-
-
-Installation using Gwydion Dylan
-================================
-
-Compilation using d2c (obviously Mindy won't work):
-
-	$ make                         # d2c meta.lid
-
-Testing:
-
-	example$ make                  # d2c -L.. example.lid
-	example$ ./example
-
-Automatic installation (requires Gwydion Dylan 2.3.1):
-
-	$ make install
