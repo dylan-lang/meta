@@ -8,12 +8,10 @@ define library example
   use format-out;
   use standard-io;
   use meta;
- // use string-extensions;
 end library;
 
 define module example
   use common-dylan;
-//  use extensions;
   use streams;
   use format;
   use format-out;
@@ -21,7 +19,4 @@ define module example
   use meta;
 
   export parse-integer, parse-finger-query;
-
- // use string-conversions;
- // use character-type;
 end module;
