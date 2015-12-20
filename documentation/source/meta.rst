@@ -1,6 +1,9 @@
 The Meta Library
 ****************
 
+.. current-library:: meta
+.. current-module:: meta
+
 Introduction
 ============
 
@@ -28,222 +31,306 @@ Exported facilities
 The ``meta``-library exports the ``meta`` module with the following
 macros:
 
-``meta-definer`` (or, more clearly, ``define meta `` *<foo>*)
+.. macro:: meta-definer
 
-Implements Meta and provides some additional functionality to define
-variables. See `below <#syntax>`__.
+   Meta integrates the ability to parse from streams and strings in one
+   facility. (The parsing of lists is not implemented yet, because it's
+   rather useless in Dylan. This addition would be simple to do, though.)
 
-``with-meta-syntax``
+   :macro-call:
 
-The guts of the ``meta-definer`` form; use when requiring precise
-control of variables or constructs
+     .. code-block:: dylan
 
-``collect-definer``
+         define meta name (variables) => (results)
+           meta body
+         end
 
-General facility to collect data into sequences (by default, into
-strings). Initially ``with-meta-syntax`` had this functionality
-integrated--a mess. Now this is a more modular approach.
+   :parameter name: The meta-function name, which is immediately transformed into
+      ``scan-``\ *name*
+   :parameter variables: -- token-holders used in *meta body*.
+   :parameter results: An expression returned on a successful scan. This can be omitted
+      in which case, the return value will be ``#f``.
+   :parameter meta body: A sequence of `Meta expressions`_ to scan
 
-```with-collector`` <With-collector.html>`__
+   :discussion:
 
-The guts of the ``collect-definer`` form.
+     The ``meta-definer`` form works only with the ``parse-string``
+     *source-type* of the :macro:`with-meta-syntax` form.
+
+     The user of this form has control over the return value. Usually ``#t``
+     is sufficient (in which case the results clause may be omitted, see
+     below); however, e.g., the values of the *variables* may need to be
+     manipulated during the parse phase.
+
+   :example:
+
+     .. code-block:: dylan
+
+        define meta public-id(s, pub) => (pub)
+          "PUBLIC", scan-s(s), scan-pubid-literal(pub)
+        end meta public-id;
+
+     This definition returns ``pub`` when it successfully scans the tokens
+     "PUBLIC", (some) spaces, and a literal which ``pub`` receives. Note
+     that, hereafter, the meta definition is referred to as
+     ``scan-public-id`` outside the meta syntax block.
+
+     This example, without an explicit results block, is from the ``meta``
+     library:
+
+     .. code-block:: dylan
+
+        define meta s(c)
+          element-of($space, c), loop(element-of($space, c))
+        end meta s;
+
+     Scans in at least one space (``element-of`` and ``loop`` are discussed
+     in the section on `Meta expressions`_).
+
+.. macro:: with-meta-syntax
+
+   The guts of the :macro:`meta-definer` form; use when requiring precise
+   control of variables or constructs
+
+   :macrocall:
+
+     .. code-block:: dylan
+
+        with-meta-syntax
+        source-type (source #key keys)
+          [ variables ]
+          meta;
+          body
+        end
+
+   :parameter source-type: Either ``parse-stream`` or ``parse-string``.
+   :parameter source: Either a stream or a string, depending on *source-type*
+   :parameter #key start: If *source-type* is ``parse-string``,
+     the index to start at.
+   :parameter #key end: If *source-type* is ``parse-string``,
+     the index to finish before.
+   :parameter #key pos: If *source-type* is ``parse-string``,
+     a name that will be bound to the current index during execution
+     of the ``with-meta-syntax`` forms.
+   :parameter meta: A `Meta expression <#meta-expressions>`__.
+   :parameter body: A body. Evaluated only if parsing is successful.
+   :value results: If parsing fails ``#f``, otherwise the values of *body*.
+
+   :description:
+
+     **Special programming aids:**
+
+     ``variables (variable [ :: type ] [ = init ], ...);``
+
+     Bind variables to *init*, which defaults to ``#f``;
+
+     Future versions will have further special forms.
+
+   :example:
+
+     .. code-block:: dylan
+
+        with-meta-syntax parse-stream (*standard-input*)
+          body
+        end with-meta-syntax;
+
+        let query :: <string> = ask-user();
+        with-meta-syntax parse-string (query, start: 23, end: 42)
+          body
+        end with-meta-syntax;
+
+        with-meta-syntax parse-string (query)
+          ... ['\n', finish()] ...
+          values(these, values, will, be, returned);
+        end with-meta-syntax;
+
+.. macro:: collector-definer
+
+   General facility to collect data into sequences (by default, into
+   strings). Initially :macro:`with-meta-syntax` had this functionality
+   integrated. This is a more modular approach.
+
+.. macro:: with-collector
+
+   The guts of the :macro:`collector-definer` form. This macro allows
+   collecting data into a sequence.  This is similar in spirit to
+   Common Lisp's ``LOOP`` clauses ``COLLECT`` and ``APPEND``, but more
+   flexible. If you want to extract subsequences from a string while
+   parsing it, this is the tool to use.
+
+   :macrocall:
+
+     .. code-block:: dylan
+
+        with-collector operation ... #key collect, append;
+          body
+        end
+
+   :parameter operation: Specifies the mode of operation. See below.
+   :parameter collect: A name for a function that, called with a parameter, inserts this parameter into the sequence.
+   :parameter append: A name for a function that, called with a sequence, appends this parameter to the sequence.
+   :parameter body: A Dylan body (bnf).
+   :value result: Normally the values of *body*. There is `minimal form <#minimal>`__ of ``with-collector``, which always returns the collected sequence.
+
+   :discussion:
+
+     Like ``COLLECT``, ``with-collector`` can put objects into a list.
+     Unlike ``COLLECT``, it can also create vectors or write into
+     already created vectors.
+
+     **Collecting into a list or vector**
+
+     Two simple forms of ``with-collector`` are ``into-list`` and
+     ``into-vector``. They create a list or a vector and write into it. The
+     sequence is available as a variable with a user-defined name:
+
+     .. code-block:: dylan
+
+        with-collector into-list name #key collect, append;
+          body
+        end
+
+        with-collector into-vector name #key collect, append;
+          body
+        end
+
+     **Writing into an existing vector**
+
+     ``into-vector``, by default, creates a <stretchy-sequence>. If you don't
+     like this behaviour, you can specify a different vector that will be
+     used. For instance, if you already know how long the result will be, you
+     might want to create a string in the first place.
+
+     .. code-block:: dylan
+
+        with-collector into-vector name = init, #key collect, append;
+          body
+        end
+
+
+     **Using buffers**
+
+     Normally it is not known in advance how long the result will be. What is
+     really needed is a sequence that automatically reduces its size after
+     processing is finished. ``into-buffer`` implements this by returning a
+     subsequence of the original vector.
+
+     Instead of a variable holding the sequence there is now a function which
+     creates the subsequence.
+
+     .. code-block:: dylan
+
+        with-collector into-buffer function-name, #key collect, append;
+          body
+        end
+
+
+     But how do you find out what the maximum buffer size has to be? A safe
+     guess is the length of the original vector you are extracting elements
+     from. The following construct automatically creates a vector of the same
+     class (well, :drm:`type-for-copy`) and size as *big-one*:
+
+     .. code-block:: dylan
+
+        with-collector into-buffer function-name like big-one, #key collect, append;
+          body
+        end
+
+     **A minimal collection form**
+
+     If you don't need to write into vectors or use buffers, but just want to
+     collect some stuff and return it, use this idiom:
+
+    .. code-block:: dylan
+
+       with-collector {into-list|into-vector}, #key collect, append;
+         body
+         // Note: Values of body will be thrown away.
+       end
+
+   :example:
+
+     .. code-block:: dylan
+
+        define function parse-finger-query (query :: <string>)
+          with-collector into-buffer user like query, collect: collect;
+            with-meta-syntax parse-string (query)
+              let (whois, at, c);
+              [loop(' '), {[{"/W", "/w"}, yes!(whois)], []},        // Whois switch?
+               loop(' '), loop({[{'\n', '\r'}, finish()],           // Newline? Quit.
+                    {['@', yes!(at), do(collect('@'))], // @? Indirect.
+                     [type(<character>, c),             // Else:
+                      do(collect(c))]}})];              //   Collect char
+              values(whois, user(), at);
+            end with-meta-syntax;
+          end with-collector;
+        end function parse-finger-query;
 
 Aside from the syntactic constructors exported above, the Meta library
 also provides some commonly-used forms for scanning and parsing:
 
-**scan-s**\ ()
+.. function:: scan-s
 
-Scans in at lease one space
+   Scans in at least one space.
 
-**scan-word**\ (*word*)
+.. function:: scan-word
 
-Scans in a token and returns that token as a ``<string>`` instance. A
-"word" is surrounded by spaces or any of the following characters: '<',
-'>', '{', '}', '[', ']', punctuation (',', '?', or '!'), or the single-
-or double- quotation-mark.
+   Scans in a token and returns that token as a ``<string>`` instance. A
+   "word" is surrounded by spaces or any of the following characters: '<',
+   '>', '{', '}', '[', ']', punctuation (',', '?', or '!'), or the single-
+   or double- quotation-mark.
 
-**scan-int**\ (*int*)
+.. function:: scan-int
 
-Reads in digit characters and returns an ``<integer>`` instance.
+   Reads in digit characters and returns an ``<integer>`` instance.
 
-**scan-number**\ (*real*)
+.. function:: scan-number
 
-Although this is not an all-encompassing conversion utility (although,
-IMHO, it's good enough to be part of the standard, once there is one,
-YMMV), it reads in just about any fixed-point number format and returns
-a ``<real>`` instance.
+   Although this is not an all-encompassing conversion utility (although,
+   IMHO, it's good enough to be part of the standard, once there is one,
+   YMMV), it reads in just about any fixed-point number format and returns
+   a :drm:`<real>` instance.
 
-**string-to-number**\ (*str*, ``#key`` *base*) => (*ans*)
+.. function:: string-to-number
 
-**Arguments:**
+   :parameter str: An instance of :drm:`<string>`, the string to convert
+     to a number.
+   :parameter base: An instance of :drm:`<integer>`, defaults to ``10``,
+     the base of the number in the string.
+   :value ans: An instance of :drm:`<real>`, the resulting number.
 
-*str*, a ``<string>``, the string to convert to a number
+   :discussion:
 
-*base*, an ``<integer>``, defaults to ``       10``, the base of the
-number in the string.
-
-**Values:**
-
-*ans*, a ``<real>``, the resulting number.
-
-Discussion:
-
-This really should belong to the common-dylan spec, so that instead of
-rolling their own, everyone should use this function. ... It is
-therefore exported to this end.
+     This really should belong to the common-dylan spec, so that instead of
+     rolling their own, everyone should use this function. It is
+     therefore exported to this end.
 
 Scanning tokens usually entails using some common character types. Meta
 exports the following:
 
-**$space** -- any whitespace
+.. constant:: $space
 
-**$digit** ``[0-9]``
+   :equivalent: Any whitespace.
 
-**$letter** ``[a-zA-Z]``
+.. constant:: $digit
 
-**$num-char** ``$digit ++ [.eE+]``
+   :equivalent: ``[0-9]``
 
-**$graphic-char** ``[_@#$%^&*()+=~/]``
+.. constant:: $letter
 
-**$any-char** ``$letter ++ $num-char ++ $graphic-char``
+   :equivalent: ``[a-zA-Z]``
 
-Meta Syntax
-===========
+.. constant:: $num-char
 
-Meta integrates the ability to parse from streams and strings in one
-facility. (The parsing of lists is not implemented yet, because it's
-rather useless in Dylan. This addition would be simple to do, though.)
+   :equivalent: ``$digit ++ [.eE+]``
 
-.. code-block:: dylan
+.. constant:: $graphic-char
 
-    define meta name (variables) => (results)
-      meta body
-    end
+   :equivalent: ``[_@#$%^&*()+=~/]``
 
-**Arguments:**
+.. constant:: $any-char
 
-*name* -- the meta-function name, which is immediately transformed into
-``scan-``\ *name*
-
-*variables* -- token-holders used in *meta body*
-
-*results* -- an expression returned on a successful scan
-
-*meta body* -- a sequence of `anded Meta expressions <#and-expr>`__ to
-scan
-
-**Discussion:**
-
-The ``meta-definer`` form works only with the ```parse-string``
-*source-type* <#parse-string>`__ of the
-`with-meta-syntax <#with-meta-syntax-definition>`__ form.
-
-The user of this form has control over the return value. Usually ``#t``
-is sufficient (in which case the results clause may be omitted, see
-below); however, e.g., the values of the *variables* may need to be
-manipulated during the parse phase.
-
-**Example:**
-
-.. code-block:: dylan
-
-    define meta public-id(s, pub) => (pub)
-      "PUBLIC", scan-s(s), scan-pubid-literal(pub)
-    end meta public-id;
-
-This definition returns ``pub`` when it successfully scans the tokens
-"PUBLIC", (some) spaces, and a literal which ``pub`` receives. Note
-that, hereafter, the meta definition is referred to as
-``scan-public-id`` outside the meta syntax block .
-
---------------
-
-.. code-block:: dylan
-
-    define meta name (variables)
-      meta body
-    end
-
-Same as the above form except that *results* is ``#t``
-
-**Example** (from the meta library itself):
-
-.. code-block:: dylan
-
-    define meta s(c)
-      element-of($space, c), loop(element-of($space, c))
-    end meta s;
-
-Scans in at least one space (``element-of`` and ``loop`` are discussed
-in the section on `Meta expressions <#expressions>`__).
-
---------------
-
-.. code-block:: dylan
-
-    with-meta-syntax
-    source-type (source #key keys)
-      [ variables ]
-      meta;
-      body
-    end
-
-
-**Arguments:**
-
-*source-type*---either ``       parse-stream`` or ``parse-string``
-
-*source*---either a stream or a string, depending on *source-type*
-
-*keys*---*source-type* specific.
-
-*meta*---a `Meta expression <#expressions>`__.
-
-*body*---a body. Evaluated only if parsing is successful.
-
-**Values:**
-
-If parsing fails ``#f``, otherwise the values of *body*.
-
-**Keyword arguments:**
-
-``parse-stream`` does not accept keyword arguments currently.
-
-``parse-string`` recognizes the following keywords:
-
-*start*---Index to start at
-
-*end*---Index to finish before
-
-*pos*---A name that will be bound to the current index during execution
-of the ``with-meta-syntax`` forms.
-
-**Special programming aids:**
-
-``variables (variable [ :: type ] [ = init ], ...);``
-
-Bind variables to *init*, which defaults to #f;
-
-Future versions will have further special forms.
-
-**Example fragments:**
-
-.. code-block:: dylan
-
-    with-meta-syntax parse-stream (*standard-input*)
-      body
-    end with-meta-syntax;
-
-    let query :: <string> = ask-user();
-    with-meta-syntax parse-string (query, start: 23, end: 42)
-      body
-    end with-meta-syntax;
-
-    with-meta-syntax parse-string (query)
-      ... ['\n', finish()] ...
-      values(these, values, will, be, returned);
-    end with-meta-syntax;
-
+   :equivalent: ``$letter ++ $num-char ++ $graphic-char``
 
 Meta expressions
 ================
@@ -288,13 +375,14 @@ or/first hit
 
 ``type(type, variable)``
 
-| match any *type*, store result in *variable*
-| **Warning:** *deprecated* ``type`` is most often used in seeing if a
-character is one of several possibilities. Use ``element-of`` instead.
+match any *type*, store result in *variable*
+
+.. warning:: *deprecated* ``type`` is most often used in seeing if a
+   character is one of several possibilities. Use ``element-of`` instead.
 
 ``$foo``
 
-``loop(foo)     ``
+``loop(foo)``
 
 zero or more
 
@@ -312,32 +400,32 @@ whole substrings. This does not work when reading from a stream.
 Additional pseudo-function expressions
 --------------------------------------
 
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| **``with-meta-syntax``**             | **Description**                                                                                            | **Could be written as**                               |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``do(Dylan)``                        | call the code and continue (whatever the result is)                                                        | ``(Dylan; #t)``                                       |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``finish()``                         | finish parsing successfully                                                                                | not possible                                          |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``test(predicate)``                  | Match against a predicate.                                                                                 | not possible                                          |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``test(predicate, variable)``        | Match against a predicate, saving the result.                                                              | not possible                                          |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``peeking(variable, test)``          | Save result first, so that expression test can use it.                                                     | not possible;                                         |
-|                                      |                                                                                                            |  **Warning:** *deprecated, use*\ ``peek`` *instead*   |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``peek(variable, test)``             | Look one character ahead and store in *variable* if it passes *test*. Leave the character on the stream.   | not possible                                          |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``element-of(sequence, variable)``   | Sees if the *variable* (a character) is a member of the *sequence*, storing the result                     | { 'a', 'b', 'c' } (but not storing result)            |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``yes!(variable)``                   | Set *variable* to #t and continue.                                                                         | ``(variable := #t)``                                  |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``no!(variable)``                    | Set *variable* to #f and continue.                                                                         | ``(variable := #f; #t)``                              |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``set!(variable, value)``            | Set *variable* to *value* and continue.                                                                    | ``(variable := value; #t)``                           |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
-| ``accept(variable)``                 | Match anything and save result.                                                                            | ``type(<object>, variable)``                          |
-+--------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| **``with-meta-syntax``**           | **Description**                                                                                            | **Could be written as**                               |
++====================================+============================================================================================================+=======================================================+
+| ``do(Dylan)``                      | call the code and continue (whatever the result is)                                                        | ``(Dylan; #t)``                                       |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``finish()``                       | finish parsing successfully                                                                                | not possible                                          |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``test(predicate)``                | Match against a predicate.                                                                                 | not possible                                          |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``test(predicate, variable)``      | Match against a predicate, saving the result.                                                              | not possible                                          |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``peeking(variable, test)``        | Save result first, so that expression test can use it.                                                     | not possible;                                         |
+|                                    |                                                                                                            |  **Warning:** *deprecated, use*\ ``peek`` *instead*   |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``peek(variable, test)``           | Look one character ahead and store in *variable* if it passes *test*. Leave the character on the stream.   | not possible                                          |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``element-of(sequence, variable)`` | Sees if the *variable* (a character) is a member of the *sequence*, storing the result                     | { 'a', 'b', 'c' } (but not storing result)            |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``yes!(variable)``                 | Set *variable* to ``#t`` and continue.                                                                     | ``(variable := #t)``                                  |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``no!(variable)``                  | Set *variable* to ``#f`` and continue.                                                                     | ``(variable := #f; #t)``                              |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``set!(variable, value)``          | Set *variable* to *value* and continue.                                                                    | ``(variable := value; #t)``                           |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| ``accept(variable)``               | Match anything and save result.                                                                            | ``type(<object>, variable)``                          |
++------------------------------------+------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
 
 Example code
 ============

@@ -7,4 +7,3 @@ Statistics
 
    copyright
    meta
-   with-collector
