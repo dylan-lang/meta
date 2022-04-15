@@ -22,4 +22,4 @@ an implementation in Common Lisp::
 The macro defined here is an attempt to implement Meta (with slightly
 adapted syntax) for Dylan.  It is functional, but not yet optimized.
 
-.. _Baker: http://www.pipeline.com/~hbaker1/Prag-Parse.html
+.. _Baker: https://dl.acm.org/doi/pdf/10.1145/121983.121984
