@@ -1,12 +1,8 @@
-library: example
 module: dylan-user
 
 define library example
   use common-dylan;
-  use streams;
-  use format;
-  use format-out;
-  use standard-io;
+  use io;
   use meta;
 end library;
 

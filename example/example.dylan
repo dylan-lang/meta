@@ -13,7 +13,7 @@ end function digit-to-integer;
 
 define function parse-integer (source :: <stream>);
   with-meta-syntax parse-stream (source)
-    variables (d, (sign = +1), (num = 0));
+    variables (d, sign = +1, num = 0);
     [{'+', ['-', set!(sign, -1)], []},
      test(digit?, d), set!(num, digit-to-integer(d)),
      loop([test(digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
@@ -36,7 +36,7 @@ end function parse-finger-query;
 
 define function test-peeking (query :: <string>)
   with-meta-syntax parse-string (query)
-    variables (c, (i = 0));
+    variables (c, i = 0);
     loop([peeking(c, c >= 'a' & c <= 'z'), do(i := i + 1)]);
     i;
   end with-meta-syntax;
