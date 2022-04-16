@@ -1,4 +1,3 @@
-library: example
 module: example
 
 define function digit? (x :: <character>) => (b :: <boolean>)
@@ -43,18 +42,21 @@ define function test-peeking (query :: <string>)
 end function test-peeking;
 
 define method main (appname, #rest arguments)
-  format-out("Enter fixnum: "); force-output(*standard-output*);
+  format-out("Enter fixnum: ");
+  force-out();
   let number = parse-integer(*standard-input*);
   format-out("Result: %d\n", number);
 
   read-line(*standard-input*); // parse-integer won't consume trailing garbage
 
-  format-out("Enter finger query: "); force-output(*standard-output*);
+  format-out("Enter finger query: ");
+  force-out();
   let (whois, user, at) = parse-finger-query(read-line(*standard-input*));
   format-out("Results: Whois Switch: %=, Indirect: %=, User: %=\n",
              whois, at, user);
 
-  format-out("Enter [a-z]*: "); force-output(*standard-output*);
+  format-out("Enter [a-z]*: ");
+  force-out();
   let i = test-peeking(read-line(*standard-input*));
   format-out("%= valid chars read.\n", i);
 end method main;
