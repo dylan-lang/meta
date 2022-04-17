@@ -1,9 +1,5 @@
 module: example
 
-define function digit? (x :: <character>) => (b :: <boolean>)
-  member?(x, "0123456789");
-end function digit?;
-
 define constant $zero = as(<integer>, '0');
 
 define function digit-to-integer (x :: <character>) => (d :: <integer>)
@@ -16,8 +12,8 @@ define method parse-integer (source :: <stream>) => (i :: false-or(<integer>))
   with-meta-syntax parse-stream (source)
     variables (d, sign = +1, num = 0);
     [{'+', ['-', set!(sign, -1)], []},
-     test(digit?, d), set!(num, digit-to-integer(d)),
-     loop([test(digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
+     test(decimal-digit?, d), set!(num, digit-to-integer(d)),
+     loop([test(decimal-digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
     sign * num
   end;
 end method;
@@ -26,8 +22,8 @@ define method parse-integer (source :: <sequence>) => (i :: false-or(<integer>))
   with-meta-syntax parse-string (source)
     variables (d, sign = +1, num = 0);
     [{'+', ['-', set!(sign, -1)], []},
-     test(digit?, d), set!(num, digit-to-integer(d)),
-     loop([test(digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
+     test(decimal-digit?, d), set!(num, digit-to-integer(d)),
+     loop([test(decimal-digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
     sign * num
   end;
 end method;

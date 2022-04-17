@@ -4,6 +4,7 @@ define library example
   use common-dylan;
   use io;
   use meta;
+  use strings;
 end library;
 
 define module example
@@ -11,8 +12,9 @@ define module example
   use streams;
   use format;
   use format-out;
-  use standard-io;
   use meta;
+  use standard-io;
+  use strings;
 
   export parse-integer, parse-finger-query;
 end module;
