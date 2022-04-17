@@ -10,15 +10,27 @@ define function digit-to-integer (x :: <character>) => (d :: <integer>)
   as(<integer>, x) - $zero;
 end function digit-to-integer;
 
-define function parse-integer (source :: <stream>);
+define generic parse-integer (source :: type-union(<stream>, <sequence>)) => (i :: false-or(<integer>));
+
+define method parse-integer (source :: <stream>) => (i :: false-or(<integer>))
   with-meta-syntax parse-stream (source)
     variables (d, sign = +1, num = 0);
     [{'+', ['-', set!(sign, -1)], []},
      test(digit?, d), set!(num, digit-to-integer(d)),
      loop([test(digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
-    sign * num;
-  end with-meta-syntax;
-end function parse-integer;
+    sign * num
+  end;
+end method;
+
+define method parse-integer (source :: <sequence>) => (i :: false-or(<integer>))
+  with-meta-syntax parse-string (source)
+    variables (d, sign = +1, num = 0);
+    [{'+', ['-', set!(sign, -1)], []},
+     test(digit?, d), set!(num, digit-to-integer(d)),
+     loop([test(digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
+    sign * num
+  end;
+end method;
 
 define function parse-finger-query (query :: <string>)
   with-collector into-buffer user like query, collect: collect;
@@ -42,12 +54,20 @@ define function test-peeking (query :: <string>)
 end function test-peeking;
 
 define method main (appname, #rest arguments)
-  format-out("Enter fixnum: ");
+  // Parse integer from stream.
+  format-out("Enter integer: ");
   force-out();
   let number = parse-integer(*standard-input*);
-  format-out("Result: %d\n", number);
+  format-out("Result: %=\n", number);
 
   read-line(*standard-input*); // parse-integer won't consume trailing garbage
+
+  // Parse integer from string.
+  format-out("Enter another integer: ");
+  force-out();
+  let string = read-line(*standard-input*);
+  let number = parse-integer(string);
+  format-out("Result: %=\n", number);
 
   format-out("Enter finger query: ");
   force-out();
