@@ -1,9 +1,4 @@
-library: example
 module: example
-
-define function digit? (x :: <character>) => (b :: <boolean>)
-  member?(x, "0123456789");
-end function digit?;
 
 define constant $zero = as(<integer>, '0');
 
@@ -11,15 +6,27 @@ define function digit-to-integer (x :: <character>) => (d :: <integer>)
   as(<integer>, x) - $zero;
 end function digit-to-integer;
 
-define function parse-integer (source :: <stream>);
+define generic parse-integer (source :: type-union(<stream>, <sequence>)) => (i :: false-or(<integer>));
+
+define method parse-integer (source :: <stream>) => (i :: false-or(<integer>))
   with-meta-syntax parse-stream (source)
-    variables (d, (sign = +1), (num = 0));
+    variables (d, sign = +1, num = 0);
     [{'+', ['-', set!(sign, -1)], []},
-     test(digit?, d), set!(num, digit-to-integer(d)),
-     loop([test(digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
-    sign * num;
-  end with-meta-syntax;
-end function parse-integer;
+     test(decimal-digit?, d), set!(num, digit-to-integer(d)),
+     loop([test(decimal-digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
+    sign * num
+  end;
+end method;
+
+define method parse-integer (source :: <sequence>) => (i :: false-or(<integer>))
+  with-meta-syntax parse-string (source)
+    variables (d, sign = +1, num = 0);
+    [{'+', ['-', set!(sign, -1)], []},
+     test(decimal-digit?, d), set!(num, digit-to-integer(d)),
+     loop([test(decimal-digit?, d), set!(num, digit-to-integer(d) + 10 * num)])];
+    sign * num
+  end;
+end method;
 
 define function parse-finger-query (query :: <string>)
   with-collector into-buffer user like query, collect: collect;
@@ -36,25 +43,36 @@ end function parse-finger-query;
 
 define function test-peeking (query :: <string>)
   with-meta-syntax parse-string (query)
-    variables (c, (i = 0));
+    variables (c, i = 0);
     loop([peeking(c, c >= 'a' & c <= 'z'), do(i := i + 1)]);
     i;
   end with-meta-syntax;
 end function test-peeking;
 
 define method main (appname, #rest arguments)
-  format-out("Enter fixnum: "); force-output(*standard-output*);
+  // Parse integer from stream.
+  format-out("Enter integer: ");
+  force-out();
   let number = parse-integer(*standard-input*);
-  format-out("Result: %d\n", number);
+  format-out("Result: %=\n", number);
 
   read-line(*standard-input*); // parse-integer won't consume trailing garbage
 
-  format-out("Enter finger query: "); force-output(*standard-output*);
+  // Parse integer from string.
+  format-out("Enter another integer: ");
+  force-out();
+  let string = read-line(*standard-input*);
+  let number = parse-integer(string);
+  format-out("Result: %=\n", number);
+
+  format-out("Enter finger query: ");
+  force-out();
   let (whois, user, at) = parse-finger-query(read-line(*standard-input*));
   format-out("Results: Whois Switch: %=, Indirect: %=, User: %=\n",
              whois, at, user);
 
-  format-out("Enter [a-z]*: "); force-output(*standard-output*);
+  format-out("Enter [a-z]*: ");
+  force-out();
   let i = test-peeking(read-line(*standard-input*));
   format-out("%= valid chars read.\n", i);
 end method main;

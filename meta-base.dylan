@@ -32,7 +32,7 @@ end macro with-meta-syntax;
 define macro meta-parse-aux
     { meta-parse-aux parse-stream, ?source:expression, (),
        ?meta:*,
-       ?result:expression
+       ?result:expression       // Should this be ?result:body ?
       end }
       => { let stream = ?source;
            local method match (form) => (success :: <boolean>);
@@ -42,19 +42,19 @@ define macro meta-parse-aux
                    end if;
                  end method match;
 
-          // match-type always is looking at one <character>, so
-          // it's more efficient to use rcurry(member?, seq) than
-          // instance? on singletons.  match-element fits the bill.
+           // match-type always is looking at one <character>, so
+           // it's more efficient to use rcurry(member?, seq) than
+           // instance? on singletons.  match-element fits the bill.
            local method match-type (type :: <type>)
                   => (success :: <boolean>, result :: <object>);
                    let success = instance?(peek(stream), type);
                    values(success, success & read-element(stream));
                  end method match-type;
-          local method match-element(seq :: <sequence>)
-                 => (success :: <boolean>, result :: <object>);
-                  let success = member?(peek(stream), seq);
-                  values(success, success & read-element(stream));
-                end method match-element;
+           local method match-element(seq :: <sequence>)
+                  => (success :: <boolean>, result :: <object>);
+                   let success = member?(peek(stream), seq);
+                   values(success, success & read-element(stream));
+                 end method match-element;
            local method match-test (matches? :: <function>)
                   => (success :: <boolean>, result :: <object>);
                    let success = matches?(peek(stream));
