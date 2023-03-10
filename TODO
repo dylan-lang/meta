@@ -9,7 +9,7 @@ Future plans:
     (Try to parse an integer in the middle of a huge Meta parser...)
 
 
-Wow! Most off the original problems are fixed now!  Still on the list:
+Wow! Most of the original problems are fixed now!  Still on the list:
 
   - Strings allow flexible read-ahead, but currently that's only used to 
     match substrings, which is rather boring.  It should be possible to

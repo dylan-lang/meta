@@ -8,7 +8,9 @@
     ],
     "category": "development tools",
     "contact": "dylan-lang@googlegroups.com",
-    "dependencies": [
-        "strings@1.1"
+    "dependencies": [],
+    "dev-dependencies": [
+        "strings",
+        "testworks"
     ]
 }
