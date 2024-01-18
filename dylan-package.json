@@ -10,6 +10,7 @@
     "contact": "dylan-lang@googlegroups.com",
     "dependencies": [],
     "dev-dependencies": [
+	"sphinx-extensions",
         "strings",
         "testworks"
     ]
