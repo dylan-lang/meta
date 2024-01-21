@@ -12,12 +12,11 @@
 # serve to show the default.
 
 import sys, os
-import sphinxcontrib.dylan.themes as dylan_themes
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('../../sphinx-extensions'))
+sys.path.insert(0, os.path.abspath('../../_packages/sphinx-extensions/current/src/sphinxcontrib'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -26,7 +25,7 @@ import sphinxcontrib.dylan.themes as dylan_themes
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinxcontrib.dylan.domain', 'sphinx.ext.mathjax']
+extensions = ['dylan.domain', 'sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -95,15 +94,15 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = dylan_themes.get_html_theme_default()
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = dylan_themes.get_html_theme_options_default()
+#html_theme_options = dylan_themes.get_html_theme_options_default()
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [dylan_themes.get_html_theme_path()]
+#html_theme_path = [dylan_themes.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
