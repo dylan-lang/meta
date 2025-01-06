@@ -1,6 +1,6 @@
-**********
-Statistics
-**********
+****
+Meta
+****
 
 .. toctree::
    :maxdepth: 2
