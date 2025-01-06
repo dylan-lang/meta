@@ -11,7 +11,6 @@
     "dependencies": [],
     "dev-dependencies": [
 	"sphinx-extensions",
-        "strings",
         "testworks"
     ]
 }
