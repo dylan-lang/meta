@@ -5,3 +5,4 @@ files:	library
 	meta-types
 	meta-syntax
 	meta
+Target-type: dll
